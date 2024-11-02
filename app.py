@@ -43,11 +43,14 @@ class SportDetail(Resource):
 class AddSport(Resource):
     def post(self):
         data = request.get_json()
+        if not data or 'name' not in data or 'description' not in data or 'calories_burned' not in data:
+            return {"error": True, "message": "Invalid input"}, 400
+        
         new_sport = {
             "id": str(len(sports) + 1),  # Generate a new ID
-            "name": data.get('name'),
-            "description": data.get('description'),
-            "calories_burned": data.get('calories_burned')
+            "name": data['name'],
+            "description": data['description'],
+            "calories_burned": data['calories_burned']
         }
         sports.append(new_sport)
         sport_details[new_sport['id']] = new_sport
@@ -60,17 +63,23 @@ class AddSport(Resource):
 class UpdateSport(Resource):
     def put(self, sport_id):
         data = request.get_json()
-        if sport_id in sport_details:
-            sport_to_update = sport_details[sport_id]
-            sport_to_update['name'] = data.get('name', sport_to_update['name'])
-            sport_to_update['description'] = data.get('description', sport_to_update['description'])
-            sport_to_update['calories_burned'] = data.get('calories_burned', sport_to_update['calories_burned'])
-            return {
-                "error": False,
-                "message": "Sport updated successfully",
-                "sport": sport_to_update
-            }
-        return {"error": True, "message": "Sport not found"}, 404
+        if sport_id not in sport_details:
+            return {"error": True, "message": "Sport not found"}, 404
+        
+        if not data or 'name' not in data and 'description' not in data and 'calories_burned' not in data:
+            return {"error": True, "message": "Invalid input"}, 400
+        
+        sport_to_update = sport_details[sport_id]
+        sport_to_update['name'] = data.get('name', sport_to_update['name'])
+        sport_to_update['description'] = data.get('description', sport_to_update['description'])
+        sport_to_update['calories_burned'] = data.get('calories_burned', sport_to_update['calories_burned'])
+        
+        return {
+            "error": False,
+            "message": "Sport updated successfully",
+            "sport": sport_to_update
+        }
+
 
 class DeleteSport(Resource):
     def delete(self, sport_id):
